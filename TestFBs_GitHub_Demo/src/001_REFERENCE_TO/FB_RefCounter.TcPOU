@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.0">
+  <POU Name="FB_RefCounter" Id="{19A5BD19-5C94-497F-9C54-477ADDCE4C65}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_RefCounter
+VAR
+    refTarget   : REFERENCE TO DINT; // 目标数据引用 / Target data reference
+    xBound      : BOOL;              // 是否已绑定 / Bound flag
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// 本例 FB 主体无需周期逻辑
+// No cyclic logic is required in this demo FB
+]]></ST>
+    </Implementation>
+    <Method Name="Bind" Id="{6B127D50-C156-49B0-B46A-2EFF532C52D9}">
+      <Declaration><![CDATA[METHOD PUBLIC Bind
+VAR_IN_OUT
+    nTarget     : DINT; // 外部目标变量 / External target variable
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// 保存外部变量引用 / Save external variable reference
+refTarget REF= nTarget;
+
+xBound := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AddValue" Id="{0FC76FC6-F31F-4282-9CDE-0043DC7121D5}">
+      <Declaration><![CDATA[METHOD PUBLIC AddValue : BOOL
+VAR_INPUT
+    nStep       : DINT; // 增加值 / Increment value
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AddValue := FALSE;
+
+// 引用无效直接退出 / Exit if reference invalid
+IF NOT __ISVALIDREF(refTarget) THEN
+    RETURN;
+END_IF
+
+// 通过引用修改外部变量 / Modify external variable by reference
+refTarget := refTarget + nStep;
+
+AddValue := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetValue" Id="{73B5621C-C271-45CE-9370-B58634AAD870}">
+      <Declaration><![CDATA[METHOD PUBLIC GetValue : DINT
+VAR
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetValue := 0;
+
+// 引用有效才读取 / Read only when reference valid
+IF __ISVALIDREF(refTarget) THEN
+    GetValue := refTarget;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

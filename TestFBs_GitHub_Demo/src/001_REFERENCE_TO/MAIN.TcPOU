@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.0">
+  <POU Name="MAIN" Id="{ADD1A49E-4777-4756-BB20-8C64F1592671}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+    // 原始变量 Original variables
+    nDataA          : DINT := 100;   // 数据A / Source data A
+    nDataB          : DINT := 500;   // 数据B / Source data B
+
+    // 引用变量 Reference variable
+    refData         : REFERENCE TO DINT; // DINT引用 / Reference to DINT
+
+    // 测试触发 Test triggers
+    xBindA          : BOOL;          // 绑定到A / Bind to A
+    xBindB          : BOOL;          // 绑定到B / Bind to B
+    xAdd            : BOOL;          // 引用自增 / Add by reference
+    xSet999         : BOOL;          // 引用写999 / Write 999 by reference
+
+    // 状态观察 Monitor
+    xRefValid       : BOOL;          // 引用是否有效 / Reference valid
+    nReadValue      : DINT;          // 通过引用读取的值 / Read value by reference
+
+    // FB 引用验证 Reference FB demo
+    nCounterA       : DINT := 10;    // 计数器A / Counter A
+    nCounterB       : DINT := 100;   // 计数器B / Counter B
+
+    fbRefCounter    : FB_RefCounter; // 引用计数器FB / Reference counter FB
+
+    xBindCounterA   : BOOL;          // FB绑定CounterA / FB bind CounterA
+    xBindCounterB   : BOOL;          // FB绑定CounterB / FB bind CounterB
+    xAdd10          : BOOL;          // FB增加10 / FB add 10
+
+    nCurrentValue   : DINT;          // FB当前引用值 / Current referenced value
+    xResult         : BOOL;          // 方法执行结果 / Method result
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ============================================================
+// REFERENCE TO 基础验证 / Basic REFERENCE TO test
+// ============================================================
+
+// 判断引用是否有效 / Check reference valid
+xRefValid := __ISVALIDREF(refData);
+
+// 绑定到 nDataA / Bind reference to nDataA
+IF xBindA THEN
+    refData REF= nDataA;
+    xBindA := FALSE;
+END_IF
+
+// 绑定到 nDataB / Bind reference to nDataB
+IF xBindB THEN
+    refData REF= nDataB;
+    xBindB := FALSE;
+END_IF
+
+// 通过引用读取 / Read by reference
+IF __ISVALIDREF(refData) THEN
+    nReadValue := refData;
+END_IF
+
+// 通过引用自增 / Add by reference
+IF xAdd THEN
+    IF __ISVALIDREF(refData) THEN
+        refData := refData + 1;
+    END_IF
+
+    xAdd := FALSE;
+END_IF
+
+// 通过引用写入999 / Write 999 by reference
+IF xSet999 THEN
+    IF __ISVALIDREF(refData) THEN
+        refData := 999;
+    END_IF
+
+    xSet999 := FALSE;
+END_IF
+
+
+// ============================================================
+// FB 内部保存引用验证 / FB stores reference test
+// ============================================================
+
+// 绑定到 CounterA / Bind to CounterA
+IF xBindCounterA THEN
+    fbRefCounter.Bind(nTarget := nCounterA);
+    xBindCounterA := FALSE;
+END_IF
+
+// 绑定到 CounterB / Bind to CounterB
+IF xBindCounterB THEN
+    fbRefCounter.Bind(nTarget := nCounterB);
+    xBindCounterB := FALSE;
+END_IF
+
+// 增加10 / Add 10
+IF xAdd10 THEN
+    xResult := fbRefCounter.AddValue(nStep := 10);
+    xAdd10 := FALSE;
+END_IF
+
+// 读取当前引用值 / Read current reference value
+nCurrentValue := fbRefCounter.GetValue();
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
